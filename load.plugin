@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+from optparse import OptionParser
+import subprocess
+import re
+ 
+parser = OptionParser()
+parser.add_option("-w", "--warning", dest="Warning", help="Prozent when the Status is Warning")
+parser.add_option("-c", "--critical", dest="Critical", help="Percent when the Status is Critical")
+(optionen, args) = parser.parse_args()
+ 
+p = subprocess.Popen('uptime', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+firstline = "Unbekannt"
+for line in p.stdout.readlines():
+        if(firstline=="Unbekannt"):
+                firstline = line
+regex = re.compile("load\saverage:\s([0-9]{1,3}\.[0-9]{0,5})")
+er = regex.findall(firstline)
+frei =  float(er[0])
+status = "ok"
+if(frei > float(optionen.Warning)):
+        status="warning"
+if(frei > float(optionen.Critical)):
+        status="critical"
+print "{\"status\": \""+status+"\", \"msg\": \"Load: "+str(frei)+"\"}"
